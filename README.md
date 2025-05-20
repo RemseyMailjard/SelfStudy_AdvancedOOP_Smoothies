@@ -66,26 +66,44 @@ System.out.println(special.getProduct().getName());  // Green Boost
 ### 🧪 Example 2: Basket of Smoothies using Generics
 
 ```java
+import java.util.List;
+import java.util.Arrays;
+
 public interface PricedItem {
-    double getPrice();
     String getName();
+    double getPrice();
+    // Optional: Add a category or ingredients for more complex examples later
+    // String getCategory();
 }
 ```
 
 ```java
-public class Basket<T extends PricedItem> {
-    private List<T> items = new ArrayList<>();
+public class Smoothie implements PricedItem {
+    private String name;
+    private double price;
+    private boolean isVegan;
+    private List<String> ingredients;
 
-    public void addItem(T item) {
-        items.add(item);
+    public Smoothie(String name, double price, boolean isVegan, String... ingredients) {
+        this.name = name;
+        this.price = price;
+        this.isVegan = isVegan;
+        this.ingredients = Arrays.asList(ingredients);
     }
 
-    public double getTotalPrice() {
-        return items.stream().mapToDouble(T::getPrice).sum();
-    }
+    @Override
+    public String getName() { return name; }
 
-    public void printReceipt() {
-        items.forEach(i -> System.out.println(i.getName() + " - €" + i.getPrice()));
+    @Override
+    public double getPrice() { return price; }
+
+    public boolean isVegan() { return isVegan; }
+
+    public List<String> getIngredients() { return ingredients; }
+
+    @Override
+    public String toString() {
+        return name + " (€" + String.format("%.2f", price) + (isVegan ? ", Vegan" : "") + ", Ingredients: " + ingredients + ")";
     }
 }
 ```
