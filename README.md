@@ -55,7 +55,8 @@ public class MenuItem<T> {
 Usage:
 
 ```java
-Smoothie greenBoost = new Smoothie("Green Boost", 4.99);
+// Assuming Smoothie class is defined with: public Smoothie(String name, double price, boolean isVegan, String... ingredients)
+Smoothie greenBoost = new Smoothie("Green Boost", 4.99, true, "Spinach", "Apple");
 MenuItem<Smoothie> special = new MenuItem<>("Special of the Day", greenBoost);
 
 System.out.println(special.getProduct().getName());  // Green Boost
@@ -66,9 +67,10 @@ System.out.println(special.getProduct().getName());  // Green Boost
 ### 🧪 Example 2: Basket of Smoothies using Generics
 
 ```java
-import java.util.List;
-import java.util.Arrays;
+import java.util.List; // For List interface
+import java.util.Arrays; // For Arrays.asList()
 
+// Defines a contract for items that have a name and a price.
 public interface PricedItem {
     String getName();
     double getPrice();
@@ -78,6 +80,8 @@ public interface PricedItem {
 ```
 
 ```java
+// Represents a Smoothie, implementing PricedItem.
+// Includes details like vegan status and ingredients.
 public class Smoothie implements PricedItem {
     private String name;
     private double price;
@@ -108,17 +112,79 @@ public class Smoothie implements PricedItem {
 }
 ```
 
+```java
+// Represents a Snack, also implementing PricedItem.
+public class Snack implements PricedItem {
+    private String name;
+    private double price;
+
+    public Snack(String name, double price) {
+        this.name = name;
+        this.price = price;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public double getPrice() {
+        return price;
+    }
+
+    @Override
+    public String toString() {
+        return name + " (€" + String.format("%.2f", price) + ")";
+    }
+}
+```
+
+```java
+import java.util.List; // For List interface
+import java.util.ArrayList; // For ArrayList class
+// import java.util.stream.Collectors; // Not strictly needed for this Basket version, but good for general stream use
+
+// A generic Basket that can hold any type T that extends PricedItem.
+// It can add items, calculate total price, and print a receipt.
+public class Basket<T extends PricedItem> {
+    private List<T> items = new ArrayList<>();
+
+    public void addItem(T item) {
+        items.add(item);
+    }
+
+    // Calculates total price using a stream.
+    public double getTotalPrice() {
+        return items.stream()
+                    .mapToDouble(PricedItem::getPrice) // Extracts price from each item
+                    .sum(); // Sums up all prices
+    }
+
+    // Prints a receipt for all items in the basket.
+    public void printReceipt() {
+        items.forEach(item -> 
+            System.out.println(item.getName() + ": €" + String.format("%.2f", item.getPrice()))
+        );
+    }
+}
+```
+
 Usage:
 
 ```java
+// Demonstrates using the Basket with Smoothie objects.
+// Assumes Smoothie constructor: public Smoothie(String name, double price, boolean isVegan, String... ingredients)
 Basket<Smoothie> smoothieBasket = new Basket<>();
-smoothieBasket.addItem(new Smoothie("Strawberry Dream", 3.5));
-smoothieBasket.addItem(new Smoothie("Tropical Twist", 4.25));
+smoothieBasket.addItem(new Smoothie("Strawberry Dream", 3.50, false, "Strawberry", "Milk", "Sugar"));
+smoothieBasket.addItem(new Smoothie("Tropical Twist", 4.25, true, "Pineapple", "Mango", "Coconut Water"));
+
+System.out.println("\nSmoothie Basket Receipt:");
 smoothieBasket.printReceipt();
-System.out.println("Total: €" + smoothieBasket.getTotalPrice());
+System.out.println("Total Smoothie Basket Price: €" + String.format("%.2f", smoothieBasket.getTotalPrice()));
 ```
 
-✅ **Practice Tip:** Create another class, like `Snack`, and try using `Basket<Snack>`.
+✅ **Practice Tip:** Create another class, like `Snack`, and try using `Basket<Snack>`. *(The `Snack` class is defined above, and an example with `Basket<Snack>` is in the Practice Challenges section).*
 
 ---
 
@@ -126,54 +192,76 @@ System.out.println("Total: €" + smoothieBasket.getTotalPrice());
 
 ### 🧠 What are Streams?
 
-Streams allow you to **process collections** in a clean, functional style. You can filter, sort, map, reduce, and collect data with just a few lines of code.
+Streams allow you to **process collections** in a clean, functional style. You can filter, sort, map, reduce, and collect data with just a few lines of code. They don't store data; they operate on a source (like a collection) and produce a result.
 
 ### 🧠 What is a Lambda?
 
-A **lambda expression** is a short way to write a function. It looks like this:
+A **lambda expression** is a short way to write an anonymous function (a function without a name). It's often used with functional interfaces (interfaces with a single abstract method).
+It looks like this: `(parameters) -> expression` or `(parameters) -> { statements; }`
 
 ```java
-x -> x.doSomething()
+// Example: A lambda expression for a simple addition
+(a, b) -> a + b
 ```
 
-You’ll use lambdas to define what should happen inside your stream operations.
+You’ll use lambdas to define what should happen inside your stream operations (e.g., how to filter, what to map to).
 
 ### 🧪 Example: Analyze a Smoothie Menu
 
 ```java
-List<Smoothie> menu = List.of(
-    new Smoothie("Strawberry Dream", 3.5),
-    new Smoothie("Green Boost", 4.99),
-    new Smoothie("Tropical Twist", 4.25),
-    new Smoothie("Berry Blast", 5.75)
+import java.util.List; // For List.of()
+import java.util.Arrays; // For Arrays.asList() if preferred for mutable lists
+import java.util.stream.Collectors; // For Collectors.toList()
+import java.util.Comparator; // For Comparator.comparing()
+
+// Define a menu of smoothies.
+// Constructor: Smoothie(String name, double price, boolean isVegan, String... ingredients)
+List<Smoothie> menu = Arrays.asList(
+    new Smoothie("Strawberry Dream", 3.50, false, "Strawberry", "Milk"),
+    new Smoothie("Green Boost", 4.99, true, "Spinach", "Apple", "Mint"),
+    new Smoothie("Tropical Twist", 4.25, true, "Pineapple", "Mango", "Coconut Water"),
+    new Smoothie("Berry Blast", 5.75, false, "Mixed Berries", "Yogurt"),
+    new Smoothie("Power Up", 6.20, true, "Banana", "Protein Powder", "Almond Milk")
 );
 
-// Filter smoothies under €5
-List<Smoothie> underFive = menu.stream()
-    .filter(s -> s.getPrice() < 5.0)
-    .collect(Collectors.toList());
+// Filter: Get smoothies costing less than €5.00
+List<Smoothie> underFiveEuros = menu.stream()
+    .filter(s -> s.getPrice() < 5.0) // Lambda for filtering
+    .collect(Collectors.toList()); // Collect results into a new list
+System.out.println("\nSmoothies under €5.00:");
+underFiveEuros.forEach(System.out::println);
 
-// Total price of the full menu
-double total = menu.stream()
-    .mapToDouble(Smoothie::getPrice)
+// MapToDouble & Sum: Calculate the total price of all smoothies on the menu.
+double totalMenuPrice = menu.stream()
+    .mapToDouble(Smoothie::getPrice) // Method reference to get price
     .sum();
+System.out.println("\nTotal price of the full menu: €" + String.format("%.2f", totalMenuPrice));
 
-// Sort smoothies alphabetically
+// Sorted: Sort smoothies by name alphabetically.
 List<Smoothie> sortedByName = menu.stream()
-    .sorted(Comparator.comparing(Smoothie::getName))
+    .sorted(Comparator.comparing(Smoothie::getName)) // Lambda for sorting criteria
     .collect(Collectors.toList());
+System.out.println("\nMenu sorted by name:");
+sortedByName.forEach(System.out::println);
 
-// Print all smoothies
-menu.forEach(s -> System.out.println(s.getName() + ": €" + s.getPrice()));
+// ForEach: Print all smoothie names and their prices.
+System.out.println("\nAll smoothie names and prices:");
+menu.forEach(s -> System.out.println(s.getName() + ": €" + String.format("%.2f", s.getPrice())));
 ```
 
 ### 💡 Lambda vs Anonymous Class
 
+Lambdas often provide a more concise way to implement functional interfaces compared to traditional anonymous classes.
+
 ```java
-// Lambda expression
+import java.util.function.Consumer; // For Consumer functional interface
+
+// Using a lambda expression with forEach:
+System.out.println("\nPrinting with Lambda:");
 menu.forEach(s -> System.out.println(s.getName()));
 
-// Old-style anonymous class
+// Using an old-style anonymous class with forEach:
+System.out.println("\nPrinting with Anonymous Class:");
 menu.forEach(new Consumer<Smoothie>() {
     @Override
     public void accept(Smoothie s) {
@@ -187,9 +275,91 @@ menu.forEach(new Consumer<Smoothie>() {
 ## 📝 Practice Challenges
 
 1. Create a class `Snack` that also implements `PricedItem`.
+   *(Solution: The `Snack` class definition has been added in Module 3 above.)*
+
 2. Use `Basket<Snack>` to create a snack order and calculate total.
+
+   **Example Solution:**
+   ```java
+   // Assuming Snack and Basket classes are defined as shown in Module 3.
+   // No new imports needed if run in conjunction with previous examples.
+
+   Basket<Snack> snackBasket = new Basket<>();
+   snackBasket.addItem(new Snack("Cookie", 1.50));
+   snackBasket.addItem(new Snack("Muffin", 2.00));
+   snackBasket.addItem(new Snack("Brownie", 2.25));
+
+   System.out.println("\nSnack Basket Receipt:");
+   snackBasket.printReceipt();
+   System.out.println("Total Snack Basket Price: €" + String.format("%.2f", snackBasket.getTotalPrice()));
+   // Expected output:
+   // Cookie: €1.50
+   // Muffin: €2.00
+   // Brownie: €2.25
+   // Total Snack Basket Price: €5.75
+   ```
+
 3. Create a method that returns only **vegan smoothies** using `.filter(...)`.
+
+   **Example Solution:**
+   ```java
+   // Assuming Smoothie class (defined in Module 3) has an isVegan() method 
+   // and its toString() method includes vegan status.
+   // import java.util.List; // Already imported
+   // import java.util.Arrays; // Already imported
+   // import java.util.stream.Collectors; // Already imported
+
+   List<Smoothie> fullMenu = Arrays.asList(
+       new Smoothie("Tropical Twist", 4.25, false, "Pineapple", "Mango", "Coconut Milk"),
+       new Smoothie("Green Power", 5.50, true, "Spinach", "Kale", "Apple", "Banana"),
+       new Smoothie("Berry Bliss", 4.75, false, "Strawberry", "Blueberry", "Yogurt"),
+       new Smoothie("Vegan Delight", 6.00, true, "Almond Milk", "Banana", "Peanut Butter", "Dates"),
+       new Smoothie("Simple Banana", 3.00, true, "Banana", "Water")
+   );
+
+   List<Smoothie> veganSmoothies = fullMenu.stream()
+       .filter(Smoothie::isVegan) // Uses the isVegan method reference
+       .collect(Collectors.toList());
+
+   System.out.println("\nAvailable Vegan Smoothies:");
+   veganSmoothies.forEach(System.out::println);
+   // Example output for one smoothie (relies on Smoothie's toString()):
+   // Green Power (€5.50, Vegan, Ingredients: [Spinach, Kale, Apple, Banana])
+   ```
+
 4. Sort the menu by **price**, then print it.
+
+   **Example Solution:**
+   ```java
+   // Assuming Smoothie class (defined in Module 3) has a getPrice() method.
+   // The Smoothie constructor is:
+   // public Smoothie(String name, double price, boolean isVegan, String... ingredients)
+   // import java.util.List; // Assumed from previous examples
+   // import java.util.Arrays; // Assumed from previous examples
+   // import java.util.Comparator; // For Comparator.comparingDouble, already imported in Module 4 example
+   // import java.util.stream.Collectors; // Assumed from previous examples
+
+   List<Smoothie> menuToSort = Arrays.asList(
+       new Smoothie("Tropical Twist", 4.25, false, "Pineapple", "Mango", "Coconut Milk"),
+       new Smoothie("Green Power", 5.50, true, "Spinach", "Kale", "Apple", "Banana"),
+       new Smoothie("Berry Bliss", 4.75, false, "Strawberry", "Blueberry", "Yogurt"),
+       new Smoothie("Simple Banana", 3.00, true, "Banana", "Water"),
+       new Smoothie("Vegan Delight", 6.00, true, "Almond Milk", "Banana", "Peanut Butter", "Dates")
+   );
+
+   List<Smoothie> sortedMenuByPrice = menuToSort.stream()
+       .sorted(Comparator.comparingDouble(Smoothie::getPrice))
+       .collect(Collectors.toList());
+
+   System.out.println("\nMenu sorted by price (ascending):");
+   sortedMenuByPrice.forEach(System.out::println);
+   // Example output for one smoothie (relies on Smoothie's toString()):
+   // Simple Banana (€3.00, Vegan, Ingredients: [Banana, Water])
+   // Tropical Twist (€4.25, false, Ingredients: [Pineapple, Mango, Coconut Milk]) 
+   // Berry Bliss (€4.75, false, Ingredients: [Strawberry, Blueberry, Yogurt])
+   // Green Power (€5.50, Vegan, Ingredients: [Spinach, Kale, Apple, Banana])
+   // Vegan Delight (€6.00, Vegan, Ingredients: [Almond Milk, Banana, Peanut Butter, Dates])
+   ```
 
 ---
 
