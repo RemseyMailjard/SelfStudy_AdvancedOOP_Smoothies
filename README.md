@@ -111,7 +111,58 @@ public class Smoothie implements PricedItem {
     }
 }
 ```
+### ⚠️ Without Generics: Code Duplication
 
+Here's how you'd have to write separate classes if generics didn't exist:
+
+```java
+public class SmoothieMenuItem {
+    private String label;
+    private Smoothie product;
+
+    public SmoothieMenuItem(String label, Smoothie product) {
+        this.label = label;
+        this.product = product;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public Smoothie getProduct() {
+        return product;
+    }
+}
+
+public class SnackMenuItem {
+    private String label;
+    private Snack product;
+
+    public SnackMenuItem(String label, Snack product) {
+        this.label = label;
+        this.product = product;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public Snack getProduct() {
+        return product;
+    }
+}
+```
+
+As you can see, this creates **repetitive code** for each type of item.
+
+---
+
+### 📌 Why Use Generics?
+
+- ✅ One class, many types — clean and DRY code
+- ✅ Compile-time type checking (avoids `ClassCastException`)
+- ✅ Better readability and reuse
+- ✅ Works naturally with collections like `List<T>`, `Map<K, V>`, etc.
 ```java
 // Represents a Snack, also implementing PricedItem.
 public class Snack implements PricedItem {
